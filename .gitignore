@@ -7,6 +7,7 @@ nupkg/
 
 # Visual Studio Code
 .vscode
+*.csproj
 
 # User-specific files
 *.suo
