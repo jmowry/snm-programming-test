@@ -2,7 +2,7 @@
 This is an assessment from a potential employer involving financial data and accounting calculations.
 
 ## Background
-The test file contains some basic information about some employees. You are given their employee id, first name, last name, pay type (H for hourly, S for salaried), salary (for hourly employees it is their hourly rate, for salaried it is their annual salary), start date, state of residence, and number of hours worked in a 2 week period of time.
+The test file contains some basic information about some employees. You are given their *employee id*, *first name*, *last name*, *pay type* (H for hourly, S for salaried), *salary* (for hourly employees it is their hourly rate, for salaried it is their annual salary), *start date*, *state of residence*, and *number of hours* worked in a 2 week period of time.
 
 Pay is calculated for hourly employees as hourly rate for the first 80 hours, the next 10 hours are at 150% of their rate, the rest is 175% of their rate.
 
