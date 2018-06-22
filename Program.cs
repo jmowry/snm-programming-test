@@ -7,6 +7,8 @@ namespace snm_programming_test
 {
     class Program
     {
+        static DateTime todayDate = DateTime.Now;
+
         static void Main(string[] args)
         {
             if( args.Any() )
@@ -17,15 +19,16 @@ namespace snm_programming_test
                 {
                     InputFileHandler inputFileHandler = new InputFileHandler();
                     inputFileHandler.ReadEmployees( path );
+                    
                 }
                 else
                 {
-                    Console.WriteLine("File provided not found.");
+                    Console.WriteLine( "File provided not found." );
                 }
             }
             else
             {
-                Console.WriteLine("No input file was provided.");
+                Console.WriteLine( "No input file was provided." );
             }
         }
     }
