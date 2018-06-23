@@ -17,7 +17,10 @@ namespace snm_programming_test
                 {
                     InputFileHandler inputFileHandler = new InputFileHandler();
                     inputFileHandler.ReadEmployees( path );
-                    
+                    inputFileHandler.SortEmployeesByGrossPayAscending();
+                    // TODO: Have this print method call the SortEmployeesByGrossPayAscending
+                    //      method, since they are tightly coupled.
+                    inputFileHandler.PrintEmployeePaycheckData();
                 }
                 else
                 {

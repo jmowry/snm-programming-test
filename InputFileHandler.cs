@@ -9,19 +9,21 @@ using System.Text;
 
 namespace snm_programming_test
 {
+    public enum SortDirection { Ascending, Descending };
     class Employee
     {
-        private string employeeId;
+        public string employeeId;
         public string firstName;
         public string lastName;
         public char payType;
-        public double salary;
+        public decimal salary;
         public Nullable<DateTime> startDate;
         public string state;
         public int hoursPerPeriod;
-        public double grossPay;
-
-        public string EmployeeId { get => employeeId; set => employeeId = value; }
+        public decimal grossPay;
+        public decimal fedTaxTotal;
+        public decimal stateTaxTotal;
+        public decimal netPay;
     }    
 
     class InputFileHandler
@@ -37,13 +39,8 @@ namespace snm_programming_test
             {
                 string[] column = line.Split( new char[] {','} );
                 StoreEmployee( line );
-                PrintEmployeeData( employeeList.Last() );
-                
-                if( employeeList.Count > 10 )
-                {
-                    break;
-                }
             }
+            CalculatePaychecks( employeeList );
         }
 
         private void StoreEmployee( string employeeData )
@@ -73,26 +70,36 @@ namespace snm_programming_test
                 employee.startDate = null;
             }
 
-            employee.EmployeeId = data[0];
+            employee.employeeId = data[0];
             employee.firstName = data[1];
             employee.lastName = data[2];
             employee.payType = Char.Parse( data[3] );
-            employee.salary = Double.Parse( data[4] );
+            employee.salary = Decimal.Parse( data[4] );
             employee.state = data[6];
             employee.hoursPerPeriod = Int32.Parse( data[7] );
             employeeList.Add( employee );
         }
 
-        public void PrintEmployeeData( Employee employee )
+        public void PrintEmployeePaycheckData()
         {
-            Console.WriteLine("{0} {1} {2} {3} {4} {5} {6} {7}",
-                employee.EmployeeId, employee.firstName,
+            foreach( Employee employee in employeeList )
+            {
+                {
+                    WriteEmployeePaycheckData( employee );
+                }
+            }
+        }
+
+        // TODO: Generalize printing functionality.
+        private void WriteEmployeePaycheckData( Employee employee )
+        {
+            Console.WriteLine("{0} {1} {2} {3} {4} {5} {6}",
+                employee.employeeId, employee.firstName,
                 employee.lastName,
-                employee.payType,
-                employee.salary,
-                employee.startDate,
-                employee.state,
-                employee.hoursPerPeriod );
+                employee.grossPay.ToString("#.#0"),
+                employee.fedTaxTotal.ToString("#.#0"),
+                employee.stateTaxTotal.ToString("#.#0"),
+                employee.netPay.ToString("#.#0"));
         }
 
         private void CalculatePaychecks( List<Employee> employeeList )
@@ -100,41 +107,46 @@ namespace snm_programming_test
             foreach( Employee employee in employeeList )
             {
                 string state = employee.state;
-                double stateTax = 0;
-                double fedTax = 0.15;
+                decimal stateTax = 0;
+                decimal fedTax = 0.15m;
 
                 if( state == "UT" || state == "WY" || state == "NV" )
                 {
-                    stateTax = .05;
+                    stateTax = .05m;
                 }
                 else if( state == "CO" || state == "ID" || state == "AZ" || state == "OR" )
                 {
-                    stateTax = .65;
+                    stateTax = .65m;
                 }
                 else if( state == "WA" || state == "NM" || state == "TX" )
                 {
-                    stateTax = .07;
+                    stateTax = .07m;
                 }
                 
                 if( employee.payType == 'H' )
                 {
-                    if( employee.startDate == null )
-                    {
-                        
-                    }
+                    // TODO: Guard against null startdate here?
+                    employee.grossPay = CalculateHourlyPay( employee );
                 }
                 else
                 {
-                    employee.grossPay = employee.salary;
+                    employee.grossPay = CalculateSalariedPay( employee );
                 }
-
+                
+                employee.fedTaxTotal = employee.grossPay * fedTax;
+                employee.stateTaxTotal = employee.grossPay * stateTax;
+                employee.netPay = ( employee.grossPay - ( employee.fedTaxTotal + employee.stateTaxTotal ) );
             }
-
         }
 
+        public void SortEmployeesByGrossPayAscending()
+        {
+            employeeList.Sort( delegate( Employee e1, Employee e2) { return e1.grossPay.CompareTo( e2.grossPay ); });
+        }
+        
         // TODO: This method can be refactored to be more concise 
         //      and more clean in the future.
-        private double CalculateHourlyPay( Employee employee )
+        private decimal CalculateHourlyPay( Employee employee )
         {
             // TODO: Convert this to try...catch later.
             if( employee.startDate == null )
@@ -143,38 +155,48 @@ namespace snm_programming_test
                 Console.WriteLine( "Start date not found." );
                 return 0;
             }
+            int payPeriods = GetNumberOfPayPeriods( employee );
 
+            if( payPeriods < 1 )
+            {
+                Console.WriteLine( "No pay periods found for {0} {1}.", employee.firstName, employee.lastName );
+                return 0;
+            }
+            decimal rate = employee.salary;
+            decimal overtimePay = 0;
             int hours = employee.hoursPerPeriod;
-            double rate = employee.salary;
-            double overtimePay = 0;
+            decimal totalPay = 0;
 
             // TODO: This logic sequence can be simplified with a bit more thought.
             if( hours > 80 )
             {
-                double totalPay = ( hours * rate );
-                hours =- 80;
+                totalPay = ( hours * rate );
+                hours = hours - 80;
 
                 if( hours <= 10 )
                 {
-                    overtimePay = ( hours * ( 1.5 * rate ) );
+                    overtimePay = ( hours * ( 1.5m * rate ) );
                 }
                 else if( hours > 10 )
                 {
-                    overtimePay = ( hours * ( 1.5 * rate ) );
-                    hours =- 10;
+                    overtimePay = ( hours * ( 1.5m * rate ) );
+                    hours = hours - 10;
 
-                    overtimePay += ( hours * ( 1.75 * rate ) );
+                    overtimePay += ( hours * ( 1.75m * rate ) );
                 }
 
-                return totalPay + overtimePay;
+                totalPay += overtimePay;
             }
             else
             {
-                return ( hours * rate );
+                totalPay = hours * rate;
             }
+
+            totalPay = totalPay * payPeriods;
+            return totalPay;
         }
 
-        private double CalculateSalariedPay( Employee employee )
+        private decimal CalculateSalariedPay( Employee employee )
         {
             if( employee.startDate == null )
             {
@@ -183,19 +205,25 @@ namespace snm_programming_test
                 return 0;
             }
 
+            int payPeriods = GetNumberOfPayPeriods( employee );
+
+            // Payment per pay period * number of pay periods gives gross pay.
+            decimal grossPay = ( employee.salary / 26 ) * payPeriods;
+            return grossPay;
+        }
+
+        private int GetNumberOfPayPeriods( Employee employee )
+        {
             // Get total time worked, from start to today.
-            TimeSpan ts = employee.startDate.Value.Subtract( todayDate );
+            // TimeSpan ts = employee.startDate.Value.Subtract( todayDate );
+            TimeSpan ts = todayDate.Subtract( employee.startDate.Value );
             int dateDiff = ts.Days;
             int weeks = (int)dateDiff / 7;
 
             // NOTE: Strictly for simplicity, we're rounding to end out the pay period,
             //      rather than worry about fragmented pay. In real-world application, this
             //      would be unnacceptable.
-            int payPeriods = (int)( weeks / 2 );
-
-            // Payment per pay period * number of pay periods gives gross pay.
-            double grossPay = ( employee.salary / 26 ) * payPeriods;
-            return grossPay;
+            return (int)( weeks / 2 );
         }
     }
 }
