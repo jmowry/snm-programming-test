@@ -7,8 +7,6 @@ namespace snm_programming_test
 {
     class Program
     {
-        static DateTime todayDate = DateTime.Now;
-
         static void Main(string[] args)
         {
             if( args.Any() )
