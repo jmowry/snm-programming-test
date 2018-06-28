@@ -44,3 +44,5 @@ I have chosen to do this task in C# to best fit the needs of the position.
 I will use Visual Studio Code to write, compile, and test with, and use GitHub (git) for source control.
 
 The sample data file is stored locally on my machine, but may be uploaded later for reference.
+
+As of 2018-06-28, this assessment is deemed "complete", but still unrefined. Many avenues for improvement still remain, and are marked by various "TODO" comments throughout the classes. The goal is for this to serve as a cursory snapshot of my organizational skills, development pattern, and overall software engineering process, NOT production-level code.
