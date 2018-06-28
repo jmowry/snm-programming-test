@@ -42,6 +42,22 @@ namespace snm_programming_test
         static DateTime todayDate = DateTime.Today;
         List<Employee> employeeList = new List<Employee>();
 
+        // NOTE: This method avoids using delegates or LINQ in order
+        //      to ensure a faster search time.
+        // Returns null if employee is not found. This would have to
+        // be handled by whichever class consumes this method.
+        public Employee GetByEmployeeId( string employeeId )
+        {
+            foreach( var employee in employeeList )
+            {
+                if( employee.employeeId == employeeId )
+                {
+                    return employee;
+                }
+            }
+
+            return null;
+        }
         public void ReadEmployees( string inputFileName )
         {
             string[] inputText = File.ReadAllLines( inputFileName );
