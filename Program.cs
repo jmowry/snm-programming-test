@@ -21,6 +21,7 @@ namespace snm_programming_test
                     // TODO: Have this print method call the SortEmployeesByGrossPayAscending
                     //      method, since they are tightly coupled.
                     inputFileHandler.PrintEmployeePaycheckData();
+                    inputFileHandler.PrintTopEarners();
                 }
                 else
                 {

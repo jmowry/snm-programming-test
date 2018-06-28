@@ -24,6 +24,7 @@ namespace snm_programming_test
         public decimal fedTaxTotal;
         public decimal stateTaxTotal;
         public decimal netPay;
+        public int yearsWorked;
     }    
 
     class InputFileHandler
@@ -35,10 +36,17 @@ namespace snm_programming_test
         {
             string[] inputText = File.ReadAllLines( inputFileName );
 
+            // TODO: Remove debugging break cases.
+            // int i = 0;
             foreach( string line in inputText )
             {
+                // if( i > 100 )
+                // {
+                //     break;
+                // }
                 string[] column = line.Split( new char[] {','} );
                 StoreEmployee( line );
+                // i++;
             }
             CalculatePaychecks( employeeList );
         }
@@ -218,12 +226,58 @@ namespace snm_programming_test
             // TimeSpan ts = employee.startDate.Value.Subtract( todayDate );
             TimeSpan ts = todayDate.Subtract( employee.startDate.Value );
             int dateDiff = ts.Days;
-            int weeks = (int)dateDiff / 7;
+            int weeks = (int)( dateDiff / 7 );
 
             // NOTE: Strictly for simplicity, we're rounding to end out the pay period,
             //      rather than worry about fragmented pay. In real-world application, this
             //      would be unnacceptable.
             return (int)( weeks / 2 );
+        }
+
+        private int GetNumberOfYearsWorked( Employee employee )
+        {
+            TimeSpan ts = todayDate.Subtract( employee.startDate.Value );
+            int dateDiff = ts.Days;
+            int yearsWorked = (int)( dateDiff / 365 );
+            return yearsWorked;
+        }
+
+        private List<Employee> GetTopEarners( List<Employee> employeeList )
+        {
+            int numTopEarners = (int)( employeeList.Count * 0.15 );
+            var topEarnersList = employeeList.Take( numTopEarners ).ToList();
+            SortTopEarners();
+            return topEarnersList;
+        }
+
+        private void SortTopEarners()
+        {
+            foreach( Employee employee in employeeList )
+            {
+                employee.yearsWorked = GetNumberOfYearsWorked( employee );
+            }
+            employeeList = employeeList.OrderByDescending( x => x.yearsWorked ).ThenBy( x => x.lastName ).ToList();
+        }
+
+        public void PrintTopEarners()
+        {
+            var topEarnersList = GetTopEarners( employeeList );
+
+            foreach( Employee employee in employeeList )
+            {
+                {
+                    WriteTopEarnerData( employee );
+                }
+            }
+        }
+        private void WriteTopEarnerData( Employee employee )
+        {
+            
+            Console.WriteLine("{0} {1} {2} {3}",
+                employee.firstName,
+                employee.lastName,
+                employee.yearsWorked,
+                employee.grossPay.ToString("#.#0"));
         }
     }
 }
