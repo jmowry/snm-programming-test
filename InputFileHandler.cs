@@ -34,6 +34,7 @@ namespace snm_programming_test
         public List<decimal> timesWorked;
         public List<decimal> netPays;
         public List<decimal> stateTaxes;
+        public decimal totalStateTaxes;
     }
 
     class InputFileHandler
@@ -46,16 +47,16 @@ namespace snm_programming_test
             string[] inputText = File.ReadAllLines( inputFileName );
 
             // TODO: Remove debugging break cases.
-            int i = 0;
+            // int i = 0;
             foreach( string line in inputText )
             {
-                if( i > 100 )
-                {
-                    break;
-                }
+                // if( i > 100 )
+                // {
+                //     break;
+                // }
                 string[] column = line.Split( new char[] {','} );
                 StoreEmployee( line );
-                i++;
+                // i++;
             }
             CalculatePaychecks( employeeList );
         }
@@ -174,6 +175,7 @@ namespace snm_programming_test
             }
             // TODO: This assignment is not guaranteed for salaried employees.
             int payPeriods = GetNumberOfPayPeriods( employee );
+            employee.payPeriods = payPeriods;
 
             if( payPeriods < 1 )
             {
@@ -310,6 +312,7 @@ namespace snm_programming_test
                     newState.netPays = new List<decimal>();
                     newState.stateTaxes = new List<decimal>();
                     newState.timesWorked = new List<decimal>();
+                    newState.totalStateTaxes = 0;
 
                     newState.netPays.Add( employee.netPay );
                     newState.stateTaxes.Add( employee.stateTaxTotal );
@@ -323,7 +326,64 @@ namespace snm_programming_test
 
         public void PrintMedians()
         {
-            var stateData = GenerateStateData();
+            var stateDict = GenerateStateData();
+
+            SortStateDictData( stateDict );
+
+            // Order dictionary by state name
+            stateDict = stateDict.OrderBy( st => st.Key ).ToDictionary( st => st.Key, st => st.Value );
+
+            foreach( var state in stateDict )
+            {
+                WriteMedianData( state );
+            }
+        }
+        private void WriteMedianData( KeyValuePair<string, stateData> state )
+        {
+            decimal medianNetPay = GetMedian( state.Value.netPays );
+            decimal medianTimeWorked = GetMedian( state.Value.timesWorked );
+
+            Console.WriteLine("{0} {1} {2} {3}",
+                state.Key.ToString(),
+                medianTimeWorked.ToString("#.#0 Hours"),
+                medianNetPay.ToString("#.#0"),
+                state.Value.totalStateTaxes.ToString("#.#0"));
+        }
+
+        // TODO: Possible improvement: Use array instead for leaner implementation.
+        private decimal GetMedian( List<decimal> values )
+        {
+            decimal median = 0;
+            if( values.Count() % 2 != 0 )
+            {
+                median = values.ElementAt( values.Count / 2 );
+            }
+            else
+            {
+                int middle = values.Count() / 2;
+                decimal first = values.ElementAt( middle );
+                decimal second = values.ElementAt( middle - 1 );
+                median = ( first + second ) / 2;
+            }
+
+            return median;
+        }
+
+        private void SortStateDictData( Dictionary<string, stateData> stateDict )
+        {
+            foreach( var state in stateDict )
+            {
+                state.Value.netPays.Sort();
+                state.Value.timesWorked.Sort();
+
+                if( state.Value.totalStateTaxes == 0 )
+                {
+                    foreach( var amount in state.Value.stateTaxes )
+                    {
+                        state.Value.totalStateTaxes += amount;
+                    }
+                }
+            }
         }
     }
 }
