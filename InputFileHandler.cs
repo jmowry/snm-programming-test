@@ -24,8 +24,17 @@ namespace snm_programming_test
         public decimal fedTaxTotal;
         public decimal stateTaxTotal;
         public decimal netPay;
+        // TODO: yearsWorked is too related to payPeriods and should be condensed.
         public int yearsWorked;
+        public int payPeriods;
     }    
+
+    class stateData 
+    {
+        public List<decimal> timesWorked;
+        public List<decimal> netPays;
+        public List<decimal> stateTaxes;
+    }
 
     class InputFileHandler
     {
@@ -37,16 +46,16 @@ namespace snm_programming_test
             string[] inputText = File.ReadAllLines( inputFileName );
 
             // TODO: Remove debugging break cases.
-            // int i = 0;
+            int i = 0;
             foreach( string line in inputText )
             {
-                // if( i > 100 )
-                // {
-                //     break;
-                // }
+                if( i > 100 )
+                {
+                    break;
+                }
                 string[] column = line.Split( new char[] {','} );
                 StoreEmployee( line );
-                // i++;
+                i++;
             }
             CalculatePaychecks( employeeList );
         }
@@ -163,6 +172,7 @@ namespace snm_programming_test
                 Console.WriteLine( "Start date not found." );
                 return 0;
             }
+            // TODO: This assignment is not guaranteed for salaried employees.
             int payPeriods = GetNumberOfPayPeriods( employee );
 
             if( payPeriods < 1 )
@@ -213,10 +223,10 @@ namespace snm_programming_test
                 return 0;
             }
 
-            int payPeriods = GetNumberOfPayPeriods( employee );
+            employee.payPeriods = GetNumberOfPayPeriods( employee );
 
             // Payment per pay period * number of pay periods gives gross pay.
-            decimal grossPay = ( employee.salary / 26 ) * payPeriods;
+            decimal grossPay = ( employee.salary / 26 ) * employee.payPeriods;
             return grossPay;
         }
 
@@ -278,6 +288,42 @@ namespace snm_programming_test
                 employee.lastName,
                 employee.yearsWorked,
                 employee.grossPay.ToString("#.#0"));
+        }
+
+        private Dictionary<string, stateData> GenerateStateData()
+        {
+            // Dictionary key is the state, with the corresponding median values.
+            var stateDict = new Dictionary<string, stateData>();
+            
+            foreach( Employee employee in employeeList )
+            {
+                // TODO: I suspect a more elegant solution here.
+                if( stateDict.TryGetValue( employee.state, out stateData existingState ))
+                {
+                    existingState.netPays.Add( employee.netPay );
+                    existingState.stateTaxes.Add( employee.stateTaxTotal );
+                    existingState.timesWorked.Add( employee.hoursPerPeriod * employee.payPeriods );
+                }
+                else
+                {
+                    stateData newState = new stateData();
+                    newState.netPays = new List<decimal>();
+                    newState.stateTaxes = new List<decimal>();
+                    newState.timesWorked = new List<decimal>();
+
+                    newState.netPays.Add( employee.netPay );
+                    newState.stateTaxes.Add( employee.stateTaxTotal );
+                    newState.timesWorked.Add( employee.hoursPerPeriod * employee.payPeriods );
+                    stateDict.Add( employee.state, newState );
+                }
+            }
+
+            return stateDict;
+        }
+
+        public void PrintMedians()
+        {
+            var stateData = GenerateStateData();
         }
     }
 }

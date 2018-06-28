@@ -22,6 +22,7 @@ namespace snm_programming_test
                     //      method, since they are tightly coupled.
                     inputFileHandler.PrintEmployeePaycheckData();
                     inputFileHandler.PrintTopEarners();
+                    inputFileHandler.PrintMedians();
                 }
                 else
                 {
